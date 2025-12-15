@@ -39,10 +39,15 @@ class _LoginPageState extends State<LoginPage> {
       });
 
       if (result['success']) {
-        // Registrar el dispositivo para notificaciones push
-        final fcmToken = await FCMService.getToken();
-        if (fcmToken != null) {
-          await FCMService.registerDevice(fcmToken);
+        // Registrar el dispositivo para notificaciones push (no bloqueante)
+        try {
+          final fcmToken = await FCMService.getToken();
+          if (fcmToken != null) {
+            await FCMService.registerDevice(fcmToken);
+          }
+        } catch (e) {
+          print('Error al registrar dispositivo FCM: $e');
+          // Continuar con el login aunque falle el registro FCM
         }
         
         // Navegar al perfil si el login es exitoso

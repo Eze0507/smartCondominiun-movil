@@ -17,6 +17,8 @@ class ApiConfig {
   static const String expensasEndpoint = '/expensas/'; // Para gestionar expensas
   static const String createPaymentIntentEndpoint = '/create-payment-intent/'; // Para crear PaymentIntent
   static const String verifyPaymentIntentEndpoint = '/verify-payment-intent/'; // Para verificar pago
+  static const String areasEndpoint = '/areas/'; // Para gestionar áreas comunes
+  static const String reservasEndpoint = '/reservas/'; // Para gestionar reservas
 
   // Headers por defecto
   static Map<String, String> get defaultHeaders => {

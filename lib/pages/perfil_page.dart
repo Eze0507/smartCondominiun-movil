@@ -133,6 +133,24 @@ class _PerfilPageState extends State<PerfilPage> {
               },
             ),
             ListTile(
+              leading: const Icon(Icons.location_city),
+              title: const Text("Áreas Comunes"),
+              subtitle: const Text("Reservar espacios comunes"),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.pushNamed(context, "/areas-comunes");
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.event_available),
+              title: const Text("Mis Reservas"),
+              subtitle: const Text("Ver y gestionar reservas"),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.pushNamed(context, "/mis-reservas");
+              },
+            ),
+            ListTile(
               leading: const Icon(Icons.face),
               title: const Text("Reconocimiento Facial"),
               subtitle: const Text("Verificar acceso"),

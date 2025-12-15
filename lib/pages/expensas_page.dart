@@ -32,6 +32,8 @@ class _ExpensasPageState extends State<ExpensasPage> {
   }
 
   Future<void> _cargarExpensas() async {
+    if (!mounted) return;
+    
     setState(() {
       _isLoading = true;
       _errorMessage = null;
@@ -39,6 +41,8 @@ class _ExpensasPageState extends State<ExpensasPage> {
 
     final result = await ExpensaService.getExpensas();
 
+    if (!mounted) return;
+    
     setState(() {
       _isLoading = false;
       if (result['success']) {

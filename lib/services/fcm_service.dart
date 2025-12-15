@@ -14,43 +14,55 @@ class FCMService {
 
   // Inicializar el servicio de FCM
   static Future<void> initialize() async {
-    // Inicializar notificaciones locales
-    await _initializeLocalNotifications();
-    
-    // Solicitar permisos
-    NotificationSettings settings = await _firebaseMessaging.requestPermission(
-      alert: true,
-      announcement: false,
-      badge: true,
-      carPlay: false,
-      criticalAlert: false,
-      provisional: false,
-      sound: true,
-    );
+    try {
+      // Inicializar notificaciones locales
+      await _initializeLocalNotifications();
+      
+      // Solicitar permisos
+      NotificationSettings settings = await _firebaseMessaging.requestPermission(
+        alert: true,
+        announcement: false,
+        badge: true,
+        carPlay: false,
+        criticalAlert: false,
+        provisional: false,
+        sound: true,
+      );
 
-    print('Permisos de notificación: ${settings.authorizationStatus}');
+      print('Permisos de notificación: ${settings.authorizationStatus}');
 
-    // Obtener el token FCM
-    String? token = await _firebaseMessaging.getToken();
-    if (token != null) {
-      print('Token FCM: $token');
-      // Guardar el token localmente para enviarlo después del login
-      await AuthService.saveFCMToken(token);
-    }
-
-    // Escuchar cambios en el token
-    _firebaseMessaging.onTokenRefresh.listen((newToken) async {
-      print('Token FCM actualizado: $newToken');
-      await AuthService.saveFCMToken(newToken);
-      // Intentar registrar el nuevo token si el usuario está autenticado
-      final token = await AuthService.getToken();
-      if (token != null) {
-        await registerDevice(newToken);
+      // Obtener el token FCM con manejo de errores
+      try {
+        String? token = await _firebaseMessaging.getToken();
+        if (token != null) {
+          print('Token FCM: $token');
+          // Guardar el token localmente para enviarlo después del login
+          await AuthService.saveFCMToken(token);
+        }
+      } catch (e) {
+        print('Error al obtener token FCM: $e');
+        print('La app continuará sin notificaciones push');
       }
-    });
 
-    // Configurar handlers de mensajes
-    _configureMessageHandlers();
+      // Escuchar cambios en el token
+      _firebaseMessaging.onTokenRefresh.listen((newToken) async {
+        print('Token FCM actualizado: $newToken');
+        await AuthService.saveFCMToken(newToken);
+        // Intentar registrar el nuevo token si el usuario está autenticado
+        final token = await AuthService.getToken();
+        if (token != null) {
+          await registerDevice(newToken);
+        }
+      }).onError((error) {
+        print('Error en onTokenRefresh: $error');
+      });
+
+      // Configurar handlers de mensajes
+      _configureMessageHandlers();
+    } catch (e) {
+      print('Error al inicializar FCM: $e');
+      print('La aplicación continuará sin notificaciones push');
+    }
   }
 
   // Configurar los handlers de mensajes
@@ -252,6 +264,11 @@ class FCMService {
 
   // Obtener el token FCM actual
   static Future<String?> getToken() async {
-    return await _firebaseMessaging.getToken();
+    try {
+      return await _firebaseMessaging.getToken();
+    } catch (e) {
+      print('Error al obtener token FCM: $e');
+      return null;
+    }
   }
 }

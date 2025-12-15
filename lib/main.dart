@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
@@ -10,6 +12,8 @@ import 'pages/cambiar_password_page.dart';
 import 'pages/reconocimiento_facial_page.dart';
 import 'pages/expensas_page.dart';
 import 'pages/objetos_perdidos_page.dart';
+import 'pages/areas_comunes_page.dart';
+import 'pages/mis_reservas_page.dart';
 import 'services/fcm_service.dart';
 import 'config/stripe_config.dart';
 
@@ -23,21 +27,32 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
-  // Inicializar Firebase
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  try {
+    // Inicializar Firebase
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+    
+    // Configurar handler de mensajes en segundo plano
+    FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+    
+    // Inicializar servicio FCM (no bloqueante)
+    FCMService.initialize().catchError((error) {
+      print('Error inicializando FCM: $error');
+      print('La app continuará sin notificaciones push');
+    });
+  } catch (e) {
+    print('Error inicializando Firebase: $e');
+  }
   
-  // Configurar handler de mensajes en segundo plano
-  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
-  
-  // Inicializar servicio FCM
-  await FCMService.initialize();
-  
-  // Inicializar Stripe
-  Stripe.publishableKey = StripeConfig.publishableKey;
-  Stripe.merchantIdentifier = 'merchant.com.smartcondominium';
-  await Stripe.instance.applySettings();
+  try {
+    // Inicializar Stripe
+    Stripe.publishableKey = StripeConfig.publishableKey;
+    Stripe.merchantIdentifier = 'merchant.com.smartcondominium';
+    await Stripe.instance.applySettings();
+  } catch (e) {
+    print('Error inicializando Stripe: $e');
+  }
   
   runApp(const MyApp());
 }
@@ -63,6 +78,16 @@ class _MyAppState extends State<MyApp> {
     return MaterialApp(
       title: 'Login Demo',
       debugShowCheckedModeBanner: false,
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: const [
+        Locale('es', 'ES'),
+        Locale('en', 'US'),
+      ],
+      locale: const Locale('es', 'ES'),
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         brightness: Brightness.light,
@@ -90,6 +115,8 @@ class _MyAppState extends State<MyApp> {
             ExpensasPage(onToggleTheme: _toggleTheme, isDark: _isDark),
         "/objetos-perdidos": (context) =>
             ObjetosPerdidosPage(onToggleTheme: _toggleTheme, isDark: _isDark),
+        "/areas-comunes": (context) => const AreasComunesPage(),
+        "/mis-reservas": (context) => const MisReservasPage(),
       },
     );
   }
